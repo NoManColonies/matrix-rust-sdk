@@ -121,6 +121,9 @@ pub struct RoomListService {
     ///
     /// `RoomListService` is a simple state-machine.
     state_machine: StateMachine,
+
+    /// Additional required states for sliding sync list.
+    required_states: Vec<(StateEventType, String)>,
 }
 
 impl RoomListService {
@@ -141,6 +144,18 @@ impl RoomListService {
     ///
     /// [`SlidingSyncBuilder::share_pos`]: matrix_sdk::sliding_sync::SlidingSyncBuilder::share_pos
     pub async fn new_with_share_pos(client: Client, share_pos: bool) -> Result<Self, Error> {
+        Self::new_with_share_pos_and_required_states(client, share_pos, Vec::new()).await
+    }
+
+    /// Like [`RoomListService::share_pos`] but with additional states for
+    /// [`SlidingSyncListBuilder::required_state`] while configuring sliding sync list.
+    ///
+    /// [`SlidingSyncListBuilder::required_state`]: matrix_sdk::sliding_sync::list::builder::SlidingSyncListBuilder::required_state
+    pub async fn new_with_share_pos_and_required_states(
+        client: Client,
+        share_pos: bool,
+        required_states: Vec<(StateEventType, String)>,
+    ) -> Result<Self, Error> {
         let mut builder = client
             .sliding_sync("room-list")
             .map_err(Error::SlidingSync)?
@@ -205,6 +220,9 @@ impl RoomListService {
                         DEFAULT_REQUIRED_STATE
                             .iter()
                             .map(|(state_event, value)| (state_event.clone(), (*value).to_owned()))
+                            .chain(required_states.iter().map(|(state_event, value)| {
+                                (state_event.clone(), value.to_owned())
+                            }))
                             .collect(),
                     )
                     .filters(Some(assign!(http::request::ListFilters::default(), {
@@ -248,7 +266,7 @@ impl RoomListService {
         // Eagerly subscribe the event cache to sync responses.
         client.event_cache().subscribe()?;
 
-        Ok(Self { client, sliding_sync, state_machine })
+        Ok(Self { client, sliding_sync, state_machine, required_states })
     }
 
     /// Start to sync the room list.
@@ -467,6 +485,7 @@ impl RoomListService {
             required_state: DEFAULT_REQUIRED_STATE.iter().map(|(state_event, value)| {
                 (state_event.clone(), (*value).to_owned())
             })
+            .chain(self.required_states.iter().map(|(state_event, value)| (state_event.clone(), value.to_owned())))
             .chain(
                 DEFAULT_ROOM_SUBSCRIPTION_EXTRA_REQUIRED_STATE.iter().map(|(state_event, value)| {
                     (state_event.clone(), (*value).to_owned())
