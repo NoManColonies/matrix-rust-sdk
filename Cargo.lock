@@ -3672,6 +3672,7 @@ dependencies = [
  "deadpool 0.13.0",
  "deadpool-sync",
  "glob",
+ "gloo-timers",
  "itertools 0.14.0",
  "matrix-sdk-base",
  "matrix-sdk-common",
@@ -3693,7 +3694,10 @@ dependencies = [
  "thiserror 2.0.17",
  "tokio",
  "tracing",
+ "uri_encode",
+ "uuid",
  "vodozemac",
+ "wasm-bindgen-test",
  "web-time",
  "zeroize",
 ]
@@ -6781,6 +6785,44 @@ name = "untrusted"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1"
+
+[[package]]
+name = "ureq"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "00432f493971db5d8e47a65aeb3b02f8226b9b11f1450ff86bb772776ebadd70"
+dependencies = [
+ "base64",
+ "der",
+ "log",
+ "native-tls",
+ "percent-encoding",
+ "rustls",
+ "rustls-pemfile",
+ "rustls-pki-types",
+ "ureq-proto",
+ "utf-8",
+ "webpki-root-certs",
+ "webpki-roots",
+]
+
+[[package]]
+name = "ureq-proto"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbe120bb823a0061680e66e9075942fcdba06d46551548c2c259766b9558bc9a"
+dependencies = [
+ "base64",
+ "http",
+ "httparse",
+ "log",
+]
+
+[[package]]
+name = "uri_encode"
+version = "1.0.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9666edb2c10ee91354ec062e9e2d84896c2437378484c566d3523f9b8daf0129"
 
 [[package]]
 name = "url"
