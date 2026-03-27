@@ -667,9 +667,7 @@ fn run_wasm_pack_tests(cmd: Option<WasmFeatureSet>, runner: WasmTestRunner) -> R
         // OPFS vfs
         //
         // OPFS vfs test suites has to be ran in release mode due to
-        // a harmless debug assertion when closing database.
-        //
-        // Ref: https://github.com/Spxg/sqlite-wasm-rs/blob/master/crates/sqlite-wasm-vfs/src/sahpool.rs#L672
+        // SQLite WASM test suites has to be ran in release mode due to
         (
             WasmFeatureSet::MatrixSdkSqliteStoresNoCryptoOpfs,
             (
