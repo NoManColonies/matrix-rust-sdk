@@ -547,7 +547,7 @@ fn run_wasm_pack_tests(cmd: Option<WasmFeatureSet>, runner: WasmTestRunner) -> R
             WasmFeatureSet::MatrixSdkSqliteStoresNoCrypto,
             (
                 "crates/matrix-sdk",
-                "--no-default-features --features js,sqlite,bundled-sqlite,rustls-tls --lib --release",
+                "--no-default-features --features js,sqlite,bundled-sqlite,rustls-tls,testing --lib --release",
             ),
         ),
         (
