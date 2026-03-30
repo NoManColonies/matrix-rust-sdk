@@ -114,15 +114,6 @@ impl SqliteStateStore {
     pub async fn open_with_config(config: SqliteStoreConfig) -> Result<Self, OpenStoreError> {
         setup_db_fs(&config.path).await?;
 
-        #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-        {
-            let cfg = OpfsSAHPoolCfgBuilder::new()
-                .vfs_name("opfs-sahpool")
-                .directory(config.path.to_string_lossy().as_ref())
-                .build();
-            install::<sqlite_wasm_rs::WasmOsCallback>(&cfg, true).await?;
-        }
-
         let pool = config.build_pool_of_connections(DATABASE_NAME)?;
 
         let this = Self::open_with_pool(pool, config.secret).await?;
@@ -1119,14 +1110,7 @@ trait SqliteObjectStateStoreExt: SqliteAsyncConnExt {
 #[cfg_attr(not(target_family = "wasm"), async_trait)]
 impl SqliteObjectStateStoreExt for SqliteAsyncConn {
     async fn set_kv_blob(&self, key: Key, value: Vec<u8>) -> Result<()> {
-        #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
-        {
-            Ok(self.interact(move |conn| conn.set_kv_blob(&key, &value)).await.unwrap()?)
-        }
-        #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-        {
-            Ok(rusqlite::Connection::set_kv_blob(&RefCell::borrow(&self), &key, &value)?)
-        }
+        Ok(self.interact(move |conn| conn.set_kv_blob(&key, &value)).await.unwrap()?)
     }
 }
 
