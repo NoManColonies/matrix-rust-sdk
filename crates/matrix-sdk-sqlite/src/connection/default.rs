@@ -64,7 +64,7 @@
 //! [spawn_blocking]: https://github.com/deadpool-rs/deadpool/blob/d6f7d58756f0cc7bdd1f3d54d820c1332d67e4d5/crates/deadpool-sync/src/lib.rs#L113-L131
 //! [WAL]: https://www.sqlite.org/wal.html
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use deadpool::managed::{self, Metrics, RecycleError};
 use deadpool_sync::SyncWrapper;
@@ -82,8 +82,12 @@ pub struct Manager {
 impl Manager {
     /// Creates a new [`Manager`] for a database.
     #[must_use]
-    pub fn new(database_path: PathBuf) -> Self {
-        Self { database_path }
+    pub async fn new(database_path: PathBuf) -> Result<Self, OpenStoreError> {
+        if let Some(parent) = database_path.parent() {
+            fs::create_dir_all(parent).await.map_err(OpenStoreError::CreateDir)?;
+        }
+
+        Ok(Self { database_path })
     }
 }
 
@@ -109,11 +113,4 @@ impl managed::Manager for Manager {
 
         Ok(())
     }
-}
-
-/// Setup file system for SQLite database using provided path.
-pub async fn setup_db_fs(path: &Path) -> Result<(), OpenStoreError> {
-    fs::create_dir_all(path).await.map_err(OpenStoreError::CreateDir)?;
-
-    Ok(())
 }

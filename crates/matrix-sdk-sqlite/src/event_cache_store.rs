@@ -43,7 +43,7 @@ use tracing::{debug, error, instrument, trace};
 
 use crate::{
     OpenStoreError, Secret, SqliteStoreConfig,
-    connection::{Connection as SqliteAsyncConn, Pool as SqlitePool, setup_db_fs},
+    connection::{Connection as SqliteAsyncConn, Pool as SqlitePool},
     error::{Error, Result},
     utils::{
         EncryptableStore, Key, SqliteAsyncConnExt, SqliteKeyValueStoreAsyncConnExt,
@@ -121,9 +121,7 @@ impl SqliteEventCacheStore {
 
         let _timer = timer!("open_with_config");
 
-        setup_db_fs(&config.path).await?;
-
-        let pool = config.build_pool_of_connections(DATABASE_NAME)?;
+        let pool = config.build_pool_of_connections(DATABASE_NAME).await?;
 
         let this = Self::open_with_pool(pool, config.secret).await?;
         this.write().await?.apply_runtime_config(config.runtime_config).await?;

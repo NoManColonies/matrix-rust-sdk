@@ -50,7 +50,7 @@ use zeroize::Zeroizing;
 
 use crate::{
     OpenStoreError, Secret, SqliteStoreConfig,
-    connection::{Connection as SqliteAsyncConn, Pool as SqlitePool, setup_db_fs},
+    connection::{Connection as SqliteAsyncConn, Pool as SqlitePool},
     error::{Error, Result},
     utils::{
         EncryptableStore, Key, SqliteAsyncConnExt, SqliteKeyValueStoreAsyncConnExt,
@@ -144,9 +144,7 @@ impl SqliteCryptoStore {
 
     /// Open the SQLite-based crypto store with the config open config.
     pub async fn open_with_config(config: SqliteStoreConfig) -> Result<Self, OpenStoreError> {
-        setup_db_fs(&config.path).await?;
-
-        let pool = config.build_pool_of_connections(DATABASE_NAME)?;
+        let pool = config.build_pool_of_connections(DATABASE_NAME).await?;
 
         let this = Self::open_with_pool(pool, config.secret).await?;
         this.pool.get().await?.apply_runtime_config(config.runtime_config).await?;
@@ -1845,7 +1843,7 @@ mod tests {
     use super::SqliteCryptoStore;
     use crate::SqliteStoreConfig;
     #[cfg(target_family = "wasm")]
-    use crate::utils::setup_db_fs;
+    use crate::connection::setup_vfs;
 
     #[cfg(not(target_family = "wasm"))]
     static TMP_DIR: LazyLock<TempDir> = LazyLock::new(|| tempdir().unwrap());
@@ -1886,11 +1884,10 @@ mod tests {
         let tmpdir = PathBuf::from(format!("{}/{name}", *TMP_DIR));
 
         // Get tool used to manipulate database inside VFS.
-        let tool = setup_db_fs(&tmpdir).await.unwrap();
+        let tool = setup_vfs(&tmpdir).await.unwrap();
 
-        // Import our test fixture into destination database. Unchecked because
-        // we couldn't check encrypted bytes.
-        tool.import_db_unchecked(super::DATABASE_NAME, db_source).unwrap();
+        // Import our test fixture into destination database.
+        tool.import_db(super::DATABASE_NAME, db_source).unwrap();
 
         // Make sure that we successfully imported the database.
         assert!(tool.exists(super::DATABASE_NAME).unwrap(), "imported db must exists");
@@ -2320,7 +2317,7 @@ mod tests {
         // Create a database with version 16
         let tmpdir = tempdir().unwrap();
         let config = SqliteStoreConfig::new(tmpdir.path());
-        let pool = config.build_pool_of_connections(super::DATABASE_NAME).unwrap();
+        let pool = config.build_pool_of_connections(super::DATABASE_NAME).await.unwrap();
         let conn = pool.get().await.unwrap();
         let version = super::initialize_store(&conn, 0).await.unwrap();
         let old_data_store =
@@ -2385,7 +2382,7 @@ mod tests {
         }
         #[cfg(target_family = "wasm")]
         if clear_data {
-            let tool = setup_db_fs(&tmpdir_path).await.unwrap();
+            let tool = setup_vfs(&tmpdir_path).await.unwrap();
             tool.delete_db(super::DATABASE_NAME).unwrap();
         }
 
@@ -2412,7 +2409,7 @@ mod encrypted_tests {
 
     use super::SqliteCryptoStore;
     #[cfg(target_family = "wasm")]
-    use crate::utils::setup_db_fs;
+    use crate::connection::setup_vfs;
 
     #[cfg(not(target_family = "wasm"))]
     static TMP_DIR: LazyLock<TempDir> = LazyLock::new(|| tempdir().unwrap());
@@ -2437,7 +2434,7 @@ mod encrypted_tests {
         }
         #[cfg(target_family = "wasm")]
         if clear_data {
-            let tool = setup_db_fs(&tmpdir_path).await.unwrap();
+            let tool = setup_vfs(&tmpdir_path).await.unwrap();
             tool.delete_db(super::DATABASE_NAME).unwrap();
         }
 

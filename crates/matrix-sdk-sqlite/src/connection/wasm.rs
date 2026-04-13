@@ -45,13 +45,17 @@ pub struct Manager {
 
 impl Manager {
     /// Creates a new [`Manager`] for a database.
-    ///
-    /// This method take a database path and the name of VFS.
-    /// VFS name can be obtained by passing database path to
-    /// `get_vfs_name`.
     #[must_use]
-    pub fn new(database_path: PathBuf, vfs: String) -> Self {
-        Self { database_path, vfs }
+    pub async fn new(database_path: PathBuf) -> Result<Self, OpenStoreError> {
+        let parent = database_path.parent().unwrap_or(&database_path);
+        setup_vfs(parent).await?;
+
+        // Get the last component of path. We don't need full
+        // path, as the parent directories are managed by VFS.
+        let database_path =
+            database_path.file_name().map(Into::into).unwrap_or_else(|| database_path.clone());
+
+        Ok(Self { database_path, vfs: get_vfs_name(parent) })
     }
 }
 
@@ -129,9 +133,11 @@ pub fn get_vfs_name(path: &Path) -> String {
     )
 }
 
-/// Setup VFS for SQLite database using provided path.
-pub async fn setup_db_fs(path: &Path) -> Result<OpfsSAHPoolUtil, OpenStoreError> {
-    // Use emulated virtual file system for WASM target.
+/// Setup VFS for SQLite database using provided path and return management tool.
+///
+/// Subsequence call to this function will simply return the management tool
+/// without installing vfs.
+pub async fn setup_vfs(path: &Path) -> Result<OpfsSAHPoolUtil, OpenStoreError> {
     let cfg = OpfsSAHPoolCfgBuilder::new()
         .vfs_name(&get_vfs_name(path))
         .directory(path.to_string_lossy().as_ref())
