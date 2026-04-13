@@ -20,12 +20,10 @@
 //! [`managed::Manager::recycle`] method expecting a future with `Send`
 //! bound which is not available in WASM environment.
 
-use std::path::PathBuf;
+use std::{cell::RefCell, convert::Infallible, ops::DerefMut, path::PathBuf};
 
 use deadpool::managed::{self, Metrics};
 use rusqlite::OpenFlags;
-
-use crate::utils::SyncOutsideWasmWrapper;
 
 /// [`Manager`][managed::Manager] for creating and recycling SQLite
 /// [`Connection`]s.
@@ -46,7 +44,7 @@ impl Manager {
 }
 
 impl managed::Manager for Manager {
-    type Type = SyncOutsideWasmWrapper<rusqlite::Connection>;
+    type Type = ConnectionWrapper<rusqlite::Connection>;
     type Error = rusqlite::Error;
 
     async fn create(&self) -> Result<Self::Type, Self::Error> {
@@ -57,7 +55,7 @@ impl managed::Manager for Manager {
             OpenFlags::default(),
             self.vfs.as_str(),
         )?;
-        Ok(SyncOutsideWasmWrapper::new(conn))
+        Ok(ConnectionWrapper::new(conn))
     }
 
     async fn recycle(
@@ -71,5 +69,42 @@ impl managed::Manager for Manager {
         // a future with `Send` bound which is not
         // available in WASM environments.
         Ok(())
+    }
+}
+
+#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+#[derive(Debug)]
+/// Wrapper object for providing interior mutability similar to [`SyncWrapper`]
+/// without `Send` requirement.
+///
+/// Like [`SyncWrapper`], access to the wrapped object is provided via the
+/// [`ConnectionWrapper::interact()`] method.
+///
+/// [`SyncWrapper`]: deadpool_sync::SyncWrapper
+pub struct ConnectionWrapper<T>(RefCell<T>);
+
+#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+impl<T> ConnectionWrapper<T> {
+    /// Creates a new wrapped object.
+    pub fn new(value: T) -> Self {
+        Self(RefCell::new(value))
+    }
+
+    /// Interacts with the underlying object.
+    ///
+    /// Expects a closure that takes the object as its parameter.
+    pub async fn interact<F, R>(&self, f: F) -> Result<R, Infallible>
+    where
+        F: FnOnce(&mut T) -> R,
+    {
+        // This async block here is to maintain API compatibility with `SyncWrapper`
+        // without triggering clippy warning for `async fn` without a call to
+        // `await` inside
+        async {
+            let mut value = self.0.borrow_mut();
+
+            Ok(f(value.deref_mut()))
+        }
+        .await
     }
 }

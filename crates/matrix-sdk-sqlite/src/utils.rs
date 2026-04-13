@@ -14,7 +14,7 @@
 
 use core::fmt;
 #[cfg(all(target_family = "wasm", target_os = "unknown"))]
-use std::ops::DerefMut;
+use std::convert::Infallible;
 use std::{
     borrow::{Borrow, Cow},
     cmp::min,
@@ -22,8 +22,6 @@ use std::{
     ops::Deref,
     path::Path,
 };
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
-use std::{cell::RefCell, convert::Infallible};
 
 use async_trait::async_trait;
 #[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
@@ -748,43 +746,6 @@ pub(crate) trait EncryptableStore {
 
             err.into_inner().into()
         })
-    }
-}
-
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
-#[derive(Debug)]
-/// Wrapper object for providing interior mutability similar to [`SyncWrapper`]
-/// without `Send` requirement.
-///
-/// Like [`SyncWrapper`], access to the wrapped object is provided via the
-/// [`SyncOutsideWasmWrapper::interact()`] method.
-///
-/// [`SyncWrapper`]: deadpool_sync::SyncWrapper
-pub struct SyncOutsideWasmWrapper<T>(RefCell<T>);
-
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
-impl<T> SyncOutsideWasmWrapper<T> {
-    /// Creates a new wrapped object.
-    pub fn new(value: T) -> Self {
-        Self(RefCell::new(value))
-    }
-
-    /// Interacts with the underlying object.
-    ///
-    /// Expects a closure that takes the object as its parameter.
-    pub async fn interact<F, R>(&self, f: F) -> Result<R, Infallible>
-    where
-        F: FnOnce(&mut T) -> R,
-    {
-        // This async block here is to maintain API compatibility with `SyncWrapper`
-        // without triggering clippy warning for `async fn` without a call to
-        // `await` inside
-        async {
-            let mut value = self.0.borrow_mut();
-
-            Ok(f(value.deref_mut()))
-        }
-        .await
     }
 }
 
