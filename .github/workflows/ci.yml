@@ -248,8 +248,6 @@ jobs:
           - name: '[m], indexeddb stores, no crypto'
             cmd: matrix-sdk-indexeddb-stores-no-crypto
 
-          # [m]-sqlite is not supported on Node.js yet, due to
-          # dedicated worker requirement for OPFS
           - name: '[m]-sqlite'
             cmd: sqlite
 
