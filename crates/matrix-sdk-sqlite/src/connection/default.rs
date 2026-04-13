@@ -81,7 +81,6 @@ pub struct Manager {
 
 impl Manager {
     /// Creates a new [`Manager`] for a database.
-    #[must_use]
     pub async fn new(path: &PathBuf, database_name: &str) -> Result<Self, OpenStoreError> {
         fs::create_dir_all(&path).await.map_err(OpenStoreError::CreateDir)?;
 
