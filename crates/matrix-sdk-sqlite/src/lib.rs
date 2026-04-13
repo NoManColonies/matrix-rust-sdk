@@ -216,9 +216,7 @@ impl SqliteStoreConfig {
         &self,
         database_name: &str,
     ) -> Result<connection::Pool, OpenStoreError> {
-        let path = self.path.join(database_name);
-
-        let manager = connection::Manager::new(path).await?;
+        let manager = connection::Manager::new(&self.path, database_name).await?;
 
         let pool = connection::Pool::builder(manager)
             .config(self.pool_config)

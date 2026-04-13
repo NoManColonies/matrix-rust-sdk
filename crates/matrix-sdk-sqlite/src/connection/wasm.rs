@@ -46,16 +46,14 @@ pub struct Manager {
 impl Manager {
     /// Creates a new [`Manager`] for a database.
     #[must_use]
-    pub async fn new(database_path: PathBuf) -> Result<Self, OpenStoreError> {
-        let parent = database_path.parent().unwrap_or(&database_path);
-        setup_vfs(parent).await?;
+    pub async fn new(path: &PathBuf, database_name: &str) -> Result<Self, OpenStoreError> {
+        setup_vfs(&path).await?;
 
-        // Get the last component of path. We don't need full
-        // path, as the parent directories are managed by VFS.
-        let database_path =
-            database_path.file_name().map(Into::into).unwrap_or_else(|| database_path.clone());
+        // We don't need full path for database path as the parent
+        // directories are managed by VFS.
+        let database_path = PathBuf::from(database_name);
 
-        Ok(Self { database_path, vfs: get_vfs_name(parent) })
+        Ok(Self { database_path, vfs: get_vfs_name(&path) })
     }
 }
 

@@ -82,12 +82,10 @@ pub struct Manager {
 impl Manager {
     /// Creates a new [`Manager`] for a database.
     #[must_use]
-    pub async fn new(database_path: PathBuf) -> Result<Self, OpenStoreError> {
-        if let Some(parent) = database_path.parent() {
-            fs::create_dir_all(parent).await.map_err(OpenStoreError::CreateDir)?;
-        }
+    pub async fn new(path: &PathBuf, database_name: &str) -> Result<Self, OpenStoreError> {
+        fs::create_dir_all(&path).await.map_err(OpenStoreError::CreateDir)?;
 
-        Ok(Self { database_path })
+        Ok(Self { database_path: path.join(database_name) })
     }
 }
 
