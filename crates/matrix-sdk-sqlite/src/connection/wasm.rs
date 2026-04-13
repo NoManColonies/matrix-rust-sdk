@@ -12,12 +12,12 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! An implementation of `deadpool` for `rusqlite` for usage
-//! in WASM environment.
+//! An implementation of `deadpool::managed::Manager` for `rusqlite`
+//! for usage in WASM environments.
 //!
 //! Similar to the one implemented in `crate::connection::default`,
 //! we do not implement connection recycling here. Mostly due to
-//! [`managed::Manager`] trait expecting a future output with `Send`
+//! [`managed::Manager::recycle`] method expecting a future with `Send`
 //! bound which is not available in WASM environment.
 
 use std::{convert::Infallible, path::PathBuf};
