@@ -20,27 +20,12 @@
 //! [`managed::Manager::recycle`] method expecting a future with `Send`
 //! bound which is not available in WASM environment.
 
-use std::{convert::Infallible, path::PathBuf};
+use std::path::PathBuf;
 
-pub use deadpool::managed::reexports::*;
 use deadpool::managed::{self, Metrics};
 use rusqlite::OpenFlags;
 
 use crate::utils::SyncOutsideWasmWrapper;
-
-/// The default runtime used by `matrix-sdk-sqlite` for `deadpool`.
-pub const RUNTIME: Runtime = Runtime::Tokio1;
-
-deadpool::managed_reexports!(
-    "matrix-sdk-sqlite",
-    Manager,
-    managed::Object<Manager>,
-    rusqlite::Error,
-    Infallible
-);
-
-/// Type representing a connection to SQLite from the [`Pool`].
-pub type Connection = Object;
 
 /// [`Manager`][managed::Manager] for creating and recycling SQLite
 /// [`Connection`]s.
@@ -80,8 +65,11 @@ impl managed::Manager for Manager {
         _conn: &mut Self::Type,
         _: &Metrics,
     ) -> managed::RecycleResult<Self::Error> {
-        // We cannot return an error here, since error
-        // must implement `Send`.
+        // We cannot implement connection recycling
+        // at the moment, due to
+        // `managed::Manager::recycle` expecting
+        // a future with `Send` bound which is not
+        // available in WASM environments.
         Ok(())
     }
 }

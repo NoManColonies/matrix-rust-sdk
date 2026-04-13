@@ -64,25 +64,12 @@
 //! [spawn_blocking]: https://github.com/deadpool-rs/deadpool/blob/d6f7d58756f0cc7bdd1f3d54d820c1332d67e4d5/crates/deadpool-sync/src/lib.rs#L113-L131
 //! [WAL]: https://www.sqlite.org/wal.html
 
-use std::{convert::Infallible, path::PathBuf};
+use std::path::PathBuf;
 
-pub use deadpool::managed::reexports::*;
 use deadpool::managed::{self, Metrics, RecycleError};
 use deadpool_sync::SyncWrapper;
 
-/// The default runtime used by `matrix-sdk-sqlite` for `deadpool`.
-pub const RUNTIME: Runtime = Runtime::Tokio1;
-
-deadpool::managed_reexports!(
-    "matrix-sdk-sqlite",
-    Manager,
-    managed::Object<Manager>,
-    rusqlite::Error,
-    Infallible
-);
-
-/// Type representing a connection to SQLite from the [`Pool`].
-pub type Connection = Object;
+use crate::connection::RUNTIME;
 
 /// [`Manager`][managed::Manager] for creating and recycling SQLite
 /// [`Connection`]s.
