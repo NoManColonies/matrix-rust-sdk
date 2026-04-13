@@ -17,14 +17,14 @@ use std::convert::Infallible;
 use deadpool::managed;
 pub use deadpool::managed::reexports::*;
 
-#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
+#[cfg(not(target_family = "wasm"))]
 mod default;
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+#[cfg(target_family = "wasm")]
 mod wasm;
 
-#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
+#[cfg(not(target_family = "wasm"))]
 pub use default::*;
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+#[cfg(target_family = "wasm")]
 pub use wasm::*;
 
 /// The default runtime used by `matrix-sdk-sqlite` for `deadpool`.

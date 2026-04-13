@@ -13,7 +13,7 @@
 // limitations under the License.
 
 use core::fmt;
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+#[cfg(target_family = "wasm")]
 use std::convert::Infallible;
 use std::{
     borrow::{Borrow, Cow},
@@ -24,7 +24,7 @@ use std::{
 };
 
 use async_trait::async_trait;
-#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
+#[cfg(not(target_family = "wasm"))]
 use deadpool_sync::InteractError;
 use itertools::Itertools;
 use matrix_sdk_base::SendOutsideWasm;
@@ -32,9 +32,9 @@ use matrix_sdk_store_encryption::StoreCipher;
 use ruma::{OwnedEventId, OwnedRoomId, serde::Raw, time::SystemTime};
 use rusqlite::{OptionalExtension, Params, Row, Statement, Transaction, limits::Limit};
 use serde::{Serialize, de::DeserializeOwned};
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+#[cfg(target_family = "wasm")]
 use sqlite_wasm_vfs::sahpool::{OpfsSAHPoolCfgBuilder, OpfsSAHPoolUtil, install};
-#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
+#[cfg(not(target_family = "wasm"))]
 use tokio::fs;
 use tracing::{error, trace, warn};
 use zeroize::Zeroize;
@@ -368,7 +368,7 @@ impl SqliteAsyncConnExt for SqliteAsyncConn {
     }
 }
 
-#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
+#[cfg(not(target_family = "wasm"))]
 /// Map an [`InteractError`] into a [`rusqlite::Error`].
 ///
 /// An [`InteractError::Panic`] will panic. An [`InteractError::Cancelled`] will
@@ -384,7 +384,7 @@ fn map_interact_err(error: InteractError) -> rusqlite::Error {
     }
 }
 
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+#[cfg(target_family = "wasm")]
 /// An unreachable function to avoid having to put conditional compilation
 /// everywhere we want to use [`SyncOutsideWasmWrapper::interact()`].
 ///
@@ -749,7 +749,7 @@ pub(crate) trait EncryptableStore {
     }
 }
 
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+#[cfg(target_family = "wasm")]
 /// Configure VFS name using provided path.
 pub fn get_vfs_name(path: &Path) -> String {
     format!(
@@ -758,7 +758,7 @@ pub fn get_vfs_name(path: &Path) -> String {
     )
 }
 
-#[cfg(not(all(target_family = "wasm", target_os = "unknown")))]
+#[cfg(not(target_family = "wasm"))]
 /// Setup file system for SQLite database depending on compilation target.
 pub async fn setup_db_fs(path: &Path) -> Result<(), OpenStoreError> {
     // Use system native file system for non-WASM targets.
@@ -767,7 +767,7 @@ pub async fn setup_db_fs(path: &Path) -> Result<(), OpenStoreError> {
     Ok(())
 }
 
-#[cfg(all(target_family = "wasm", target_os = "unknown"))]
+#[cfg(target_family = "wasm")]
 /// Setup file system for SQLite database depending on compilation target.
 pub async fn setup_db_fs(path: &Path) -> Result<OpfsSAHPoolUtil, OpenStoreError> {
     // Use emulated virtual file system for WASM target.
