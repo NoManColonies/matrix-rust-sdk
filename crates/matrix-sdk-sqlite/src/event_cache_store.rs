@@ -1850,9 +1850,8 @@ mod encrypted_tests {
         room_id, user_id,
     };
 
-    use crate::test_utils::{TempDirWrapper, create_tmp_dir};
-
     use super::SqliteEventCacheStore;
+    use crate::test_utils::{TempDirWrapper, create_tmp_dir};
 
     static TMP_DIR: LazyLock<TempDirWrapper> = create_tmp_dir();
 

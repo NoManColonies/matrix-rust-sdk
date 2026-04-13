@@ -811,9 +811,8 @@ mod encrypted_tests {
         media_store_integration_tests, media_store_integration_tests_time,
     };
 
-    use crate::test_utils::{TempDirWrapper, create_tmp_dir};
-
     use super::SqliteMediaStore;
+    use crate::test_utils::{TempDirWrapper, create_tmp_dir};
 
     static TMP_DIR: LazyLock<TempDirWrapper> = create_tmp_dir();
 

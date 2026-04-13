@@ -2387,9 +2387,8 @@ mod tests {
 
     use matrix_sdk_base::{StateStore, StoreError, statestore_integration_tests};
 
-    use crate::test_utils::{TempDirWrapper, create_tmp_dir};
-
     use super::SqliteStateStore;
+    use crate::test_utils::{TempDirWrapper, create_tmp_dir};
 
     static TMP_DIR: LazyLock<TempDirWrapper> = create_tmp_dir();
 

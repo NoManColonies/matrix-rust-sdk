@@ -131,7 +131,8 @@ pub fn get_vfs_name(path: &Path) -> String {
     )
 }
 
-/// Setup VFS for SQLite database using provided path and return management tool.
+/// Setup VFS for SQLite database using provided path and return management
+/// tool.
 ///
 /// Subsequence call to this function will simply return the management tool
 /// without installing vfs.
