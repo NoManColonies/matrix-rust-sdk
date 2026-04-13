@@ -45,7 +45,7 @@ pub struct Manager {
 
 impl Manager {
     /// Creates a new [`Manager`] for a database.
-    pub async fn new(path: &PathBuf, database_name: &str) -> Result<Self, OpenStoreError> {
+    pub async fn new(path: &Path, database_name: &str) -> Result<Self, OpenStoreError> {
         setup_vfs(path).await?;
 
         // We don't need full path for database path as the parent
