@@ -37,6 +37,10 @@ pub struct Manager {
 
 impl Manager {
     /// Creates a new [`Manager`] for a database.
+    ///
+    /// This method take a database path and the name of VFS.
+    /// VFS name can be obtained by passing database path to
+    /// `utils::get_vfs_name`.
     #[must_use]
     pub fn new(database_path: PathBuf, vfs: String) -> Self {
         Self { database_path, vfs }
