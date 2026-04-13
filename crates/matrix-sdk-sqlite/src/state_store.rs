@@ -42,11 +42,11 @@ use tracing::{debug, instrument, warn};
 
 use crate::{
     OpenStoreError, Secret, SqliteStoreConfig,
-    connection::{Connection as SqliteAsyncConn, Pool as SqlitePool},
+    connection::{Connection as SqliteAsyncConn, Pool as SqlitePool, setup_db_fs},
     error::{Error, Result},
     utils::{
         EncryptableStore, Key, SqliteAsyncConnExt, SqliteKeyValueStoreAsyncConnExt,
-        SqliteKeyValueStoreConnExt, repeat_vars, setup_db_fs,
+        SqliteKeyValueStoreConnExt, repeat_vars,
     },
 };
 
@@ -2563,10 +2563,9 @@ mod migration_tests {
     use super::{DATABASE_NAME, SqliteStateStore, init, keys};
     use crate::{
         Secret, SqliteStoreConfig,
+        connection::setup_db_fs,
         error::{Error, Result},
-        utils::{
-            EncryptableStore as _, SqliteAsyncConnExt, SqliteKeyValueStoreAsyncConnExt, setup_db_fs,
-        },
+        utils::{EncryptableStore as _, SqliteAsyncConnExt, SqliteKeyValueStoreAsyncConnExt},
     };
 
     #[cfg(not(target_family = "wasm"))]

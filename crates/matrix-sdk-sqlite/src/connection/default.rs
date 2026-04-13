@@ -64,12 +64,13 @@
 //! [spawn_blocking]: https://github.com/deadpool-rs/deadpool/blob/d6f7d58756f0cc7bdd1f3d54d820c1332d67e4d5/crates/deadpool-sync/src/lib.rs#L113-L131
 //! [WAL]: https://www.sqlite.org/wal.html
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use deadpool::managed::{self, Metrics, RecycleError};
 use deadpool_sync::SyncWrapper;
+use tokio::fs;
 
-use crate::connection::RUNTIME;
+use crate::{OpenStoreError, connection::RUNTIME};
 
 /// [`Manager`][managed::Manager] for creating and recycling SQLite
 /// [`Connection`]s.
@@ -108,4 +109,11 @@ impl managed::Manager for Manager {
 
         Ok(())
     }
+}
+
+/// Setup file system for SQLite database using provided path.
+pub async fn setup_db_fs(path: &Path) -> Result<(), OpenStoreError> {
+    fs::create_dir_all(path).await.map_err(OpenStoreError::CreateDir)?;
+
+    Ok(())
 }

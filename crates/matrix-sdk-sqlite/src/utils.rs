@@ -20,7 +20,6 @@ use std::{
     cmp::min,
     iter,
     ops::Deref,
-    path::Path,
 };
 
 use async_trait::async_trait;
@@ -32,10 +31,6 @@ use matrix_sdk_store_encryption::StoreCipher;
 use ruma::{OwnedEventId, OwnedRoomId, serde::Raw, time::SystemTime};
 use rusqlite::{OptionalExtension, Params, Row, Statement, Transaction, limits::Limit};
 use serde::{Serialize, de::DeserializeOwned};
-#[cfg(target_family = "wasm")]
-use sqlite_wasm_vfs::sahpool::{OpfsSAHPoolCfgBuilder, OpfsSAHPoolUtil, install};
-#[cfg(not(target_family = "wasm"))]
-use tokio::fs;
 use tracing::{error, trace, warn};
 use zeroize::Zeroize;
 
@@ -747,38 +742,6 @@ pub(crate) trait EncryptableStore {
             err.into_inner().into()
         })
     }
-}
-
-#[cfg(target_family = "wasm")]
-/// Configure VFS name using provided path.
-pub fn get_vfs_name(path: &Path) -> String {
-    format!(
-        "matrix-opfs-sahpool+{}",
-        uri_encode::encode_uri_component(path.to_string_lossy().as_ref())
-    )
-}
-
-#[cfg(not(target_family = "wasm"))]
-/// Setup file system for SQLite database depending on compilation target.
-pub async fn setup_db_fs(path: &Path) -> Result<(), OpenStoreError> {
-    // Use system native file system for non-WASM targets.
-    fs::create_dir_all(path).await.map_err(OpenStoreError::CreateDir)?;
-
-    Ok(())
-}
-
-#[cfg(target_family = "wasm")]
-/// Setup file system for SQLite database depending on compilation target.
-pub async fn setup_db_fs(path: &Path) -> Result<OpfsSAHPoolUtil, OpenStoreError> {
-    // Use emulated virtual file system for WASM target.
-    let cfg = OpfsSAHPoolCfgBuilder::new()
-        .vfs_name(&get_vfs_name(path))
-        .directory(path.to_string_lossy().as_ref())
-        .build();
-    // Avoid global installation, due to being harder to test.
-    let util = install::<sqlite_wasm_rs::WasmOsCallback>(&cfg, false).await?;
-
-    Ok(util)
 }
 
 #[cfg(test)]

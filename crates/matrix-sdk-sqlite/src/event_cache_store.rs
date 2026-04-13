@@ -43,11 +43,11 @@ use tracing::{debug, error, instrument, trace};
 
 use crate::{
     OpenStoreError, Secret, SqliteStoreConfig,
-    connection::{Connection as SqliteAsyncConn, Pool as SqlitePool},
+    connection::{Connection as SqliteAsyncConn, Pool as SqlitePool, setup_db_fs},
     error::{Error, Result},
     utils::{
         EncryptableStore, Key, SqliteAsyncConnExt, SqliteKeyValueStoreAsyncConnExt,
-        SqliteKeyValueStoreConnExt, SqliteTransactionExt, repeat_vars, setup_db_fs,
+        SqliteKeyValueStoreConnExt, SqliteTransactionExt, repeat_vars,
     },
 };
 

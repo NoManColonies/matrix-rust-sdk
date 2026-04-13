@@ -50,11 +50,11 @@ use zeroize::Zeroizing;
 
 use crate::{
     OpenStoreError, Secret, SqliteStoreConfig,
-    connection::{Connection as SqliteAsyncConn, Pool as SqlitePool},
+    connection::{Connection as SqliteAsyncConn, Pool as SqlitePool, setup_db_fs},
     error::{Error, Result},
     utils::{
         EncryptableStore, Key, SqliteAsyncConnExt, SqliteKeyValueStoreAsyncConnExt,
-        SqliteKeyValueStoreConnExt, repeat_vars, setup_db_fs,
+        SqliteKeyValueStoreConnExt, repeat_vars,
     },
 };
 

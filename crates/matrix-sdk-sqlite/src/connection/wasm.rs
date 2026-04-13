@@ -20,10 +20,18 @@
 //! [`managed::Manager::recycle`] method expecting a future with `Send`
 //! bound which is not available in WASM environment.
 
-use std::{cell::RefCell, convert::Infallible, ops::DerefMut, path::PathBuf};
+use std::{
+    cell::RefCell,
+    convert::Infallible,
+    ops::DerefMut,
+    path::{Path, PathBuf},
+};
 
 use deadpool::managed::{self, Metrics};
 use rusqlite::OpenFlags;
+use sqlite_wasm_vfs::sahpool::{OpfsSAHPoolCfgBuilder, OpfsSAHPoolUtil, install};
+
+use crate::OpenStoreError;
 
 /// [`Manager`][managed::Manager] for creating and recycling SQLite
 /// [`Connection`]s.
@@ -40,7 +48,7 @@ impl Manager {
     ///
     /// This method take a database path and the name of VFS.
     /// VFS name can be obtained by passing database path to
-    /// `utils::get_vfs_name`.
+    /// `get_vfs_name`.
     #[must_use]
     pub fn new(database_path: PathBuf, vfs: String) -> Self {
         Self { database_path, vfs }
@@ -111,4 +119,25 @@ impl<T> ConnectionWrapper<T> {
         }
         .await
     }
+}
+
+/// Configure VFS name using provided path.
+pub fn get_vfs_name(path: &Path) -> String {
+    format!(
+        "matrix-opfs-sahpool+{}",
+        uri_encode::encode_uri_component(path.to_string_lossy().as_ref())
+    )
+}
+
+/// Setup VFS for SQLite database using provided path.
+pub async fn setup_db_fs(path: &Path) -> Result<OpfsSAHPoolUtil, OpenStoreError> {
+    // Use emulated virtual file system for WASM target.
+    let cfg = OpfsSAHPoolCfgBuilder::new()
+        .vfs_name(&get_vfs_name(path))
+        .directory(path.to_string_lossy().as_ref())
+        .build();
+    // Avoid global installation, due to being harder to test.
+    let util = install::<sqlite_wasm_rs::WasmOsCallback>(&cfg, false).await?;
+
+    Ok(util)
 }
