@@ -416,11 +416,11 @@ fn run_wasm_checks(cmd: Option<WasmFeatureSet>) -> Result<()> {
         ),
         (
             WasmFeatureSet::MatrixSdkSqliteStoresNoCrypto,
-            "-p matrix-sdk --no-default-features --features js,sqlite,bundled-sqlite,rustls-tls",
+            "-p matrix-sdk --no-default-features --features js,sqlite,bundled-sqlite",
         ),
         (
             WasmFeatureSet::MatrixSdkSqliteStores,
-            "-p matrix-sdk --no-default-features --features js,sqlite,bundled-sqlite,e2e-encryption,rustls-tls",
+            "-p matrix-sdk --no-default-features --features js,sqlite,bundled-sqlite,e2e-encryption",
         ),
         (
             WasmFeatureSet::SqliteAllFeatures,
@@ -515,14 +515,14 @@ fn run_wasm_pack_tests(cmd: Option<WasmFeatureSet>, runner: WasmTestRunner) -> R
             WasmFeatureSet::MatrixSdkSqliteStoresNoCrypto,
             (
                 "crates/matrix-sdk",
-                "--no-default-features --features js,sqlite,bundled-sqlite,rustls-tls,testing --lib --release",
+                "--no-default-features --features js,sqlite,bundled-sqlite,testing --lib --release",
             ),
         ),
         (
             WasmFeatureSet::MatrixSdkSqliteStores,
             (
                 "crates/matrix-sdk",
-                "--no-default-features --features js,sqlite,bundled-sqlite,e2e-encryption,rustls-tls,testing --lib --release",
+                "--no-default-features --features js,sqlite,bundled-sqlite,e2e-encryption,testing --lib --release",
             ),
         ),
         (
