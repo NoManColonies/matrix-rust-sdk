@@ -2380,35 +2380,24 @@ mod tests {
     #[cfg(target_family = "wasm")]
     wasm_bindgen_test::wasm_bindgen_test_configure!(run_in_dedicated_worker);
 
-    #[cfg(target_family = "wasm")]
-    use std::path::PathBuf;
     use std::sync::{
         LazyLock,
         atomic::{AtomicU32, Ordering::SeqCst},
     };
 
     use matrix_sdk_base::{StateStore, StoreError, statestore_integration_tests};
-    #[cfg(not(target_family = "wasm"))]
-    use tempfile::{TempDir, tempdir};
+
+    use crate::test_utils::{TempDirWrapper, create_tmp_dir};
 
     use super::SqliteStateStore;
 
-    #[cfg(not(target_family = "wasm"))]
-    static TMP_DIR: LazyLock<TempDir> = LazyLock::new(|| tempdir().unwrap());
-    #[cfg(target_family = "wasm")]
-    static TMP_DIR: LazyLock<uuid::Uuid> = LazyLock::new(|| uuid::Uuid::new_v4());
+    static TMP_DIR: LazyLock<TempDirWrapper> = create_tmp_dir();
 
     static NUM: AtomicU32 = AtomicU32::new(0);
 
     async fn get_store() -> Result<impl StateStore, StoreError> {
         let name = NUM.fetch_add(1, SeqCst).to_string();
-
-        #[cfg(not(target_family = "wasm"))]
         let tmpdir_path = TMP_DIR.path().join(name);
-        #[cfg(target_family = "wasm")]
-        // We cannot create a temp directory in WASM environment due to non-existence file system.
-        // Instead we will rely on VFS to handle it for us.
-        let tmpdir_path = PathBuf::from(format!("{}/{name}", *TMP_DIR));
 
         tracing::info!("using store @ {}", tmpdir_path.to_str().unwrap());
 
@@ -2433,31 +2422,21 @@ mod encrypted_tests {
 
     use matrix_sdk_base::{StateStore, StoreError, statestore_integration_tests};
     use matrix_sdk_test::async_test;
-    #[cfg(not(target_family = "wasm"))]
-    use tempfile::{TempDir, tempdir};
 
     use super::SqliteStateStore;
-    use crate::{SqliteStoreConfig, utils::SqliteAsyncConnExt};
+    use crate::{
+        SqliteStoreConfig,
+        test_utils::{TempDirWrapper, create_tmp_dir},
+        utils::SqliteAsyncConnExt,
+    };
 
-    #[cfg(not(target_family = "wasm"))]
-    static TMP_DIR: LazyLock<TempDir> = LazyLock::new(|| tempdir().unwrap());
-    #[cfg(target_family = "wasm")]
-    static TMP_DIR: LazyLock<uuid::Uuid> = LazyLock::new(|| uuid::Uuid::new_v4());
+    static TMP_DIR: LazyLock<TempDirWrapper> = create_tmp_dir();
 
     static NUM: AtomicU32 = AtomicU32::new(0);
 
     fn new_state_store_workspace() -> PathBuf {
         let name = NUM.fetch_add(1, SeqCst).to_string();
-        #[cfg(not(target_family = "wasm"))]
-        {
-            TMP_DIR.path().join(name)
-        }
-        #[cfg(target_family = "wasm")]
-        // We cannot create a temp directory in WASM environment due to non-existence file system.
-        // Instead we will rely on VFS to handle it for us.
-        {
-            PathBuf::from(format!("{}/{name}", *TMP_DIR))
-        }
+        TMP_DIR.path().join(name)
     }
 
     async fn get_store() -> Result<impl StateStore, StoreError> {
@@ -2553,8 +2532,6 @@ mod migration_tests {
     use rusqlite::Transaction;
     use serde::{Deserialize, Serialize};
     use serde_json::json;
-    #[cfg(not(target_family = "wasm"))]
-    use tempfile::{TempDir, tempdir};
     use tokio::sync::Mutex;
     use zeroize::Zeroizing;
 
@@ -2562,29 +2539,18 @@ mod migration_tests {
     use crate::{
         Secret, SqliteStoreConfig,
         error::{Error, Result},
+        test_utils::{TempDirWrapper, create_tmp_dir},
         utils::{EncryptableStore as _, SqliteAsyncConnExt, SqliteKeyValueStoreAsyncConnExt},
     };
 
-    #[cfg(not(target_family = "wasm"))]
-    static TMP_DIR: LazyLock<TempDir> = LazyLock::new(|| tempdir().unwrap());
-    #[cfg(target_family = "wasm")]
-    static TMP_DIR: LazyLock<uuid::Uuid> = LazyLock::new(|| uuid::Uuid::new_v4());
+    static TMP_DIR: LazyLock<TempDirWrapper> = create_tmp_dir();
 
     static NUM: AtomicU32 = AtomicU32::new(0);
     const SECRET: &str = "secret";
 
     fn new_path() -> PathBuf {
         let name = NUM.fetch_add(1, SeqCst).to_string();
-        #[cfg(not(target_family = "wasm"))]
-        {
-            TMP_DIR.path().join(name)
-        }
-        #[cfg(target_family = "wasm")]
-        // We cannot create a temp directory in WASM environment due to non-existence file system.
-        // Instead we will rely on VFS to handle it for us.
-        {
-            PathBuf::from(format!("{}/{name}", *TMP_DIR))
-        }
+        TMP_DIR.path().join(name)
     }
 
     async fn create_fake_db(path: &Path, version: u8) -> Result<SqliteStateStore> {
