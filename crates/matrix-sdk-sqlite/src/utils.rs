@@ -381,10 +381,10 @@ fn map_interact_err(error: InteractError) -> rusqlite::Error {
 
 #[cfg(target_family = "wasm")]
 /// An unreachable function to avoid having to put conditional compilation
-/// everywhere we want to use [`SyncOutsideWasmWrapper::interact()`].
+/// everywhere we want to use [`ConnectionWrapper::interact()`].
 ///
 /// This function should not be reachable under normal circumstance since
-/// [`SyncOutsideWasmWrapper::interact()`] return [`Infallible`] as an error
+/// [`ConnectionWrapper::interact()`] return [`Infallible`] as an error.
 fn map_interact_err(_error: Infallible) -> rusqlite::Error {
     unreachable!()
 }
