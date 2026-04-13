@@ -275,14 +275,6 @@ jobs:
         with:
           version: v0.13.1
 
-      # Required in order to compile SQLite to WebAssembly
-      - name: Install emscripten toolchains
-        run: |
-          git clone https://github.com/emscripten-core/emsdk.git
-          cd emsdk
-          ./emsdk install latest
-          ./emsdk activate latest
-
       - name: Load cache
         uses: Swatinem/rust-cache@c19371144df3bb44fab255c43d04cbc2ab54d1c4 # v2
         with:
